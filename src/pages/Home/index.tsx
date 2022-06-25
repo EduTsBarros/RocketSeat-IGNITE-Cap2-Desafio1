@@ -26,41 +26,57 @@ const Home = (): JSX.Element => {
   const [products, setProducts] = useState<ProductFormatted[]>([]);
   const { addProduct, cart } = useCart();
 
-  //const cartItemsAmount = cart.reduce((sumAmount, product) => {
-  // TODO
-  // }, {} as CartItemsAmount)
+  const cartItemsAmount = cart.reduce((sumAmount, product) => {
+    const newSumAmmount = { ...sumAmount };
+    newSumAmmount[product.id] = product.amount;
+    return newSumAmmount;
+  }, {} as CartItemsAmount);
 
   useEffect(() => {
     async function loadProducts() {
-      api.get("/products").then((response) => setProducts(response.data));
+      const response = await api.get<Product[]>(
+        `products`
+      ); /* api.get("/products").then((response) => setProducts(response.data));*/
+
+      const data = response.data.map((product) => ({
+        ...product,
+        priceFormatted: formatPrice(product.price),
+      }));
+      setProducts(data);
     }
 
     loadProducts();
   }, []);
 
   function handleAddProduct(id: number) {
-    // TODO
+     addProduct(id);
   }
 
   return (
     <ProductList>
       {products.map((product) => {
         return (
-          <li>
+          <li key={product.id}>
             <img
               src={product.image}
-              alt="Tênis de Caminhada Leve Confortável"
+              alt={product.title}
             />
             <strong>{product.title}</strong>
-            <span>{product.price}</span>
+            <span>
+              {product.priceFormatted}
+             {/* {new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(product.price)} */}
+            </span>
             <button
               type="button"
               data-testid="add-product-button"
-              // onClick={() => handleAddProduct(product.id)}
+               onClick={() => handleAddProduct(product.id)}
             >
               <div data-testid="cart-product-quantity">
                 <MdAddShoppingCart size={16} color="#FFF" />
-                {/* {cartItemsAmount[product.id] || 0} */} 2
+                {cartItemsAmount[product.id] || 0}
               </div>
 
               <span>ADICIONAR AO CARRINHO</span>
